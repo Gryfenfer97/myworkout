@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:myworkout/pages/exercicesPage.dart';
+import 'package:myworkout/pages/exercicePage.dart';
 import 'pages/home.dart';
 import 'pages/workoutPage.dart';
 
@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
         routes: {
           '/': (context) => HomePage(),
           '/workout': (context) => WorkoutPage(),
-          '/exo': (context) => ExercicesPage(),
+          '/exercice': (context) => ExercicePage(),
         });
   }
 }

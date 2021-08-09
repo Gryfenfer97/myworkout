@@ -8,17 +8,88 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final Workout todayWorkout = Workout("Full Body", <Exercice>[
+    Exercice("Squats", <Serie>[
+      Serie(12, 67.5, Duration(seconds: 90)),
+      Serie(12, 67.5, Duration(seconds: 90)),
+      Serie(12, 67.5, Duration(seconds: 90)),
+      Serie(12, 67.5, Duration(seconds: 90)),
+    ]),
+    Exercice("Développé couché", <Serie>[
+      Serie(12, 52.5, Duration(seconds: 90)),
+      Serie(12, 52.5, Duration(seconds: 90)),
+      Serie(12, 52.5, Duration(seconds: 90)),
+      Serie(12, 52.5, Duration(seconds: 90)),
+    ]),
+    Exercice("Rowing", <Serie>[
+      Serie(10, 32.5, Duration(seconds: 90)),
+      Serie(10, 32.5, Duration(seconds: 90)),
+      Serie(10, 32.5, Duration(seconds: 90)),
+      Serie(10, 32.5, Duration(seconds: 90)),
+    ]),
+    Exercice("Élévations latérales", <Serie>[
+      Serie(15, 8, Duration(seconds: 60)),
+      Serie(15, 8, Duration(seconds: 60)),
+      Serie(15, 8, Duration(seconds: 60)),
+    ]),
+    Exercice("Curl barre", <Serie>[
+      Serie(12, 20, Duration(seconds: 60)),
+      Serie(12, 20, Duration(seconds: 60)),
+      Serie(12, 20, Duration(seconds: 60)),
+    ]),
+    Exercice("Extension triceps", <Serie>[
+      Serie(12, 23.5, Duration(seconds: 60)),
+      Serie(12, 23.5, Duration(seconds: 60)),
+      Serie(12, 23.5, Duration(seconds: 60)),
+    ]),
+  ]);
+  final Workout todayWorkout2 = Workout("Pecs2", <Exercice>[
+    Exercice("Développé couché", <Serie>[
+      Serie(12, 52.5, Duration(seconds: 90)),
+      Serie(12, 52.5, Duration(seconds: 90)),
+      Serie(12, 52.5, Duration(seconds: 90)),
+      Serie(12, 52.5, Duration(seconds: 90)),
+    ]),
+    Exercice("Rowing", <Serie>[
+      Serie(10, 32.5, Duration(seconds: 90)),
+      Serie(10, 32.5, Duration(seconds: 90)),
+      Serie(10, 32.5, Duration(seconds: 90)),
+      Serie(10, 32.5, Duration(seconds: 90)),
+    ]),
+  ]);
+
+  var _selectedValue;
   Map<DateTime, List<Workout>> selectedEvents = {};
   CalendarFormat format = CalendarFormat.month;
   DateTime selectedDay = DateTime.now();
   DateTime focusedDay = DateTime.now();
 
+  final WorkoutStorage storage = WorkoutStorage();
+
+  var _workoutList = <DropdownMenuItem<Workout>>[];
+
   TextEditingController _eventController = TextEditingController();
+
+  _loadWorkoutList() {
+    var workoutList = [todayWorkout, todayWorkout2];
+    workoutList.forEach((element) {
+      setState(() {
+        _workoutList
+            .add(DropdownMenuItem(child: Text(element.name), value: element));
+      });
+    });
+  }
 
   @override
   void initState() {
-    selectedEvents = {};
     super.initState();
+    // _selectedValue = "";
+    _loadWorkoutList();
+    selectedEvents = {
+      DateTime.now(): <Workout>[todayWorkout],
+    };
+    // storage.writeFile("GigaTest");
+    storage.readFile().then((e) => print("storage content: $e"));
   }
 
   List<Workout> _getWorkoutsFromDay(DateTime date) {
@@ -105,14 +176,32 @@ class _HomePageState extends State<HomePage> {
               leading: Icon(Icons.fitness_center),
               title: Text(workout.name),
               onTap: () =>
-                  Navigator.pushNamed(context, '/workout', arguments: 0)))
+                  Navigator.pushNamed(context, '/workout', arguments: workout)))
         ]),
         floatingActionButton: FloatingActionButton.extended(
             onPressed: () => showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                      title: Text("Add Workout"),
-                      content: TextFormField(controller: _eventController),
+                      title: Text("Ajouter un entrainement"),
+                      // content: TextFormField(controller: _eventController),
+                      content: StatefulBuilder(
+                        builder: (BuildContext context, StateSetter setState) {
+                          return DropdownButtonFormField<Workout>(
+                              hint: Text("Choisir un entrainement"),
+                              value: _selectedValue,
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedValue = value;
+                                });
+                              },
+                              onSaved: (value) {
+                                setState(() {
+                                  _selectedValue = value;
+                                });
+                              },
+                              items: _workoutList);
+                        },
+                      ),
                       actions: [
                         TextButton(
                           child: Text("Cancel"),
@@ -122,14 +211,12 @@ class _HomePageState extends State<HomePage> {
                           child: Text("Ok"),
                           onPressed: () {
                             if (selectedEvents[selectedDay] != null) {
-                              selectedEvents[selectedDay]!
-                                  .add(Workout("test", <Exercice>[]));
+                              selectedEvents[selectedDay]!.add(_selectedValue);
                             } else {
-                              selectedEvents[selectedDay] = [
-                                Workout("test", <Exercice>[])
-                              ];
+                              selectedEvents[selectedDay] = [_selectedValue];
                             }
                             setState(() {});
+                            Navigator.pop(context);
                           },
                         ),
                       ],
